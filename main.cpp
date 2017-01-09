@@ -18,7 +18,8 @@
 #include <aws/polly/model/SynthesizeSpeechResult.h>
 #include <aws/polly/PollyRequest.h>
 
-#include <aws/polly/PollyClient.h>
+void TestDynamoDB();
+void TestPolly();
 
 using namespace std;
 
@@ -30,6 +31,13 @@ int main(int argc, char *argv[])
     Aws::SDKOptions options;
     Aws::InitAPI(options);
 
+    TestPolly();
+
+    return 0;
+}
+
+void TestDynamoDB()
+{
     // Create clients and necessary variables
     Aws::DynamoDB::DynamoDBClient dynamoDbClient;
     Aws::DynamoDB::Model::PutItemRequest putItemRequest;
@@ -50,7 +58,26 @@ int main(int argc, char *argv[])
     else{
         cout << "PutItem failed with error " << putItemOutcome.GetError().GetMessage() << "\n";
     }
+}
 
+void TestPolly()
+{
+    Aws::Polly::PollyClient pollyClient;
+    Aws::Polly::Model::SynthesizeSpeechRequest speechRequest;
 
-    return 0;
+    speechRequest.SetVoiceId(Aws::Polly::Model::VoiceId::Kendra);
+    speechRequest.SetOutputFormat(Aws::Polly::Model::OutputFormat::mp3);
+
+    speechRequest.SetText("Hello Dave, how are you doing today?");
+    auto result = pollyClient.SynthesizeSpeech(speechRequest);
+
+//    Aws::IOStream audioStream = result.GetResult().GetAudioStream();
+
+    if (result.IsSuccess()){
+        cout << "Speech synthesis was successfull.";
+    }
+    else{
+        cout << "Speech synthesis failed.\n";
+        cout << "Error: " << result.GetError().GetMessage();
+    }
 }
