@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 // AWS Core includes
 #include <aws/core/Aws.h>
@@ -18,6 +19,8 @@
 #include <aws/polly/model/SynthesizeSpeechResult.h>
 #include <aws/polly/PollyRequest.h>
 
+#include <aws/core/utils/stream/ResponseStream.h>
+
 void TestDynamoDB();
 void TestPolly();
 
@@ -32,6 +35,8 @@ int main(int argc, char *argv[])
     Aws::InitAPI(options);
 
     TestPolly();
+
+    Aws::ShutdownAPI(options);
 
     return 0;
 }
@@ -71,7 +76,13 @@ void TestPolly()
     speechRequest.SetText("Hello Dave, how are you doing today?");
     auto result = pollyClient.SynthesizeSpeech(speechRequest);
 
-//    Aws::IOStream audioStream = result.GetResult().GetAudioStream();
+    //Hard-coded size temporarily
+    streampos size = 128000;
+    char* memblock = new char [size];
+    result.GetResult().GetAudioStream().read(memblock, size);
+
+    ofstream voiceFile ("voice.mp3");
+    voiceFile.write(memblock, size);
 
     if (result.IsSuccess()){
         cout << "Speech synthesis was successfull.";
